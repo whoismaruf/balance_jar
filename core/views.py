@@ -18,10 +18,24 @@ def home(request):
         total_balance += account.total_balance()
         total_jars += account.jar_set.count()
     
+    # Get recent transactions
+    user_jars = Jar.objects.filter(account__in=accounts)
+    recent_transactions = Transaction.objects.filter(jar__in=user_jars).select_related('jar', 'jar__account', 'jar__owner').order_by('-created_at')[:5]
+    
+    # Calculate transaction statistics
+    all_transactions = Transaction.objects.filter(jar__in=user_jars)
+    total_income = sum(t.amount for t in all_transactions if t.transaction_type == 'INCOMING')
+    total_expenses = sum(t.amount for t in all_transactions if t.transaction_type == 'OUTGOING')
+    total_transactions = all_transactions.count()
+    
     context = {
         'total_balance': total_balance,
         'total_jars': total_jars,
-        'account_count': accounts.count()
+        'account_count': accounts.count(),
+        'recent_transactions': recent_transactions,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'total_transactions': total_transactions,
     }
     
     return render(request, 'core/index.html', context)
@@ -32,6 +46,10 @@ def owner_view(request):
     owners = Owner.objects.all()
     form = OwnerForm()
     owner_forms_dict = {owner.id: OwnerForm(instance=owner) for owner in owners}
+
+    # Calculate statistics
+    total_jars = sum(owner.jar_set.count() for owner in owners)
+    active_owners = sum(1 for owner in owners if owner.jar_set.count() > 0)
 
     if request.method == 'POST':
         if 'delete_id' in request.POST:
@@ -55,7 +73,9 @@ def owner_view(request):
     return render(request, 'core/owner.html', {
         'owners': owners,
         'form': form,
-        'owner_forms_dict': owner_forms_dict
+        'owner_forms_dict': owner_forms_dict,
+        'total_jars': total_jars,
+        'active_owners': active_owners,
     })
 
 

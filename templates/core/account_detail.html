@@ -10,13 +10,6 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-light">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'account_view' %}" class="text-light">Accounts</a></li>
-                        <li class="breadcrumb-item active text-white" aria-current="page">{{ account.name }}</li>
-                    </ol>
-                </nav>
                 <h1>
                     {% if account.account_type == 'SAVINGS' %}
                         <i class="bi bi-piggy-bank text-success"></i>

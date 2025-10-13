@@ -1,51 +1,191 @@
 {% extends 'base.html' %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Dashboard{% endblock %}
 
 {% block content %}
+
+<!-- Main Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card bg-gradient bg-success text-white border-0 shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-75 small">Total Balance</div>
+                        <div class="h2 fw-bold">{{ total_balance|default:0 }}</div>
+                    </div>
+                    <i class="bi bi-wallet2 fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card bg-gradient bg-info text-white border-0 shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-75 small">Total Income</div>
+                        <div class="h2 fw-bold">{{ total_income|default:0 }}</div>
+                    </div>
+                    <i class="bi bi-arrow-down-circle fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card bg-gradient bg-warning text-white border-0 shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-75 small">Total Expenses</div>
+                        <div class="h2 fw-bold">{{ total_expenses|default:0 }}</div>
+                    </div>
+                    <i class="bi bi-arrow-up-circle fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-3">
+        <div class="card bg-gradient bg-secondary text-white border-0 shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-white-75 small">Transactions</div>
+                        <div class="h2 fw-bold">{{ total_transactions }}</div>
+                    </div>
+                    <i class="bi bi-list-ul fs-1 text-white-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Content Row -->
 <div class="row">
-    <div class="col-12">
-        <h1>Welcome to Balance Jars!</h1>
-        <p class="lead">Manage your money across different jars and accounts</p>
+    <!-- Recent Transactions -->
+    <div class="col-lg-8 mb-4">
+        <div class="card bg-dark border-light shadow">
+            <div class="card-header border-bottom border-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="text-white mb-0">
+                        <i class="bi bi-clock-history"></i> Recent Transactions
+                    </h5>
+                    {% if recent_transactions %}
+                        <a href="{% url 'all_transactions' %}" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-arrow-right"></i> View All
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if recent_transactions %}
+                    <div class="list-group list-group-flush">
+                        {% for transaction in recent_transactions %}
+                            <div class="list-group-item bg-transparent border-secondary {% if not forloop.last %}border-bottom{% else %}border-0{% endif %}">
+                                <div class="row align-items-center">
+                                    <div class="col-auto">
+                                        {% if transaction.transaction_type == 'INCOMING' %}
+                                            <div class="rounded-circle bg-success bg-opacity-25 p-2">
+                                                <i class="bi bi-arrow-down-circle text-success"></i>
+                                            </div>
+                                        {% else %}
+                                            <div class="rounded-circle bg-danger bg-opacity-25 p-2">
+                                                <i class="bi bi-arrow-up-circle text-danger"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <h6 class="text-white mb-1">{{ transaction.source_destination }}</h6>
+                                                <div class="small text-white">
+                                                    <i class="bi bi-archive"></i> {{ transaction.jar.name }} • 
+                                                    <i class="bi bi-bank"></i> {{ transaction.jar.account.name }} •
+                                                    <i class="bi bi-person"></i> {{ transaction.jar.owner.name }}
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="{% if transaction.transaction_type == 'INCOMING' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                                    {% if transaction.transaction_type == 'INCOMING' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                                                </div>
+                                                <div class="small text-white">{{ transaction.created_at|date:"M d, H:i" }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox display-4 text-white"></i>
+                        <h5 class="text-white mt-3">No Transactions Yet</h5>
+                        <p class="text-white">Start by creating accounts and adding transactions</p>
+                        <a href="{% url 'account_view' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Account
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
     </div>
-</div>
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card bg-success text-white">
-            <div class="card-body text-center">
-                <h2 class="card-title">Total Balance</h2>
-                <h1 class="display-4">{{ total_balance|default:0 }}</h1>
-                <p class="card-text">Across all your accounts</p>
+    <!-- Quick Summary & Actions -->
+    <div class="col-lg-4 mb-4">
+        <!-- Quick Stats -->
+        <div class="card bg-dark border-light shadow mb-4">
+            <div class="card-header border-bottom border-light">
+                <h5 class="text-white mb-0">
+                    <i class="bi bi-bar-chart"></i> Quick Stats
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6 border-end border-secondary">
+                        <div class="h4 text-info">{{ account_count }}</div>
+                        <div class="small text-white">Accounts</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="h4 text-warning">{{ total_jars }}</div>
+                        <div class="small text-white">Jars</div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-info text-white">
-            <div class="card-body text-center">
-                <h2 class="card-title">Accounts</h2>
-                <h1 class="display-4">{{ account_count }}</h1>
-                <p class="card-text">Total accounts</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body text-center">
-                <h2 class="card-title">Total Jars</h2>
-                <h1 class="display-4">{{ total_jars }}</h1>
-                <p class="card-text">Money jars</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row mt-5">
-    <div class="col-12 text-center">
+        <!-- Quick Actions -->
+        <div class="card bg-dark border-light shadow">
+            <div class="card-header border-bottom border-light">
+                <h5 class="text-white mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'account_view' %}" class="btn btn-primary">
+                        <i class="bi bi-bank"></i> Manage Accounts
+                    </a>
+                    <a href="{% url 'owner_view' %}" class="btn btn-outline-light">
+                        <i class="bi bi-people"></i> Manage Owners
+                    </a>
+                    <a href="{% url 'all_transactions' %}" class="btn btn-outline-light">
+                        <i class="bi bi-clock-history"></i> View All Transactions
+                    </a>
+                </div>
+            </div>
+        </div>
+
         {% if account_count == 0 %}
-        <div class="alert alert-info mt-4">
-            <h4>Get Started</h4>
-            <p>Create your first account to begin organizing your money into jars!</p>
+        <!-- Getting Started -->
+        <div class="card bg-info border-0 shadow mt-4">
+            <div class="card-body text-center">
+                <i class="bi bi-info-circle fs-1 text-white mb-3"></i>
+                <h5 class="text-white">Get Started</h5>
+                <p class="text-white-75 small">Create your first account to begin organizing your money into jars!</p>
+                <a href="{% url 'account_view' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Create First Account
+                </a>
+            </div>
         </div>
         {% endif %}
     </div>

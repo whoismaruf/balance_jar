@@ -6,12 +6,7 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-light">Home</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'account_view' %}" class="text-light">Accounts</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'account_detail' jar.account.id %}" class="text-light">{{ jar.account.name }}</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">
+
                     {% if transaction_type == 'incoming' %}Add Income{% else %}Add Expense{% endif %}
                 </li>
             </ol>

@@ -19,6 +19,9 @@ class Owner(BaseModel):
 
     def __str__(self):
         return self.name
+    
+    def total_balance(self):
+        return self.jar_set.aggregate(total=Sum('balance'))['total'] or 0
 
 
 class Account(BaseModel):
