@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Welcome to Balance Jars!</h1>
+        <p class="lead">Manage your money across different jars and accounts</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h2 class="card-title">Total Balance</h2>
+                <h1 class="display-4">{{ total_balance|default:0 }}</h1>
+                <p class="card-text">Across all your accounts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h2 class="card-title">Accounts</h2>
+                <h1 class="display-4">{{ account_count }}</h1>
+                <p class="card-text">Total accounts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-warning text-white">
+            <div class="card-body text-center">
+                <h2 class="card-title">Total Jars</h2>
+                <h1 class="display-4">{{ total_jars }}</h1>
+                <p class="card-text">Money jars</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12 text-center">
+        {% if account_count == 0 %}
+        <div class="alert alert-info mt-4">
+            <h4>Get Started</h4>
+            <p>Create your first account to begin organizing your money into jars!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

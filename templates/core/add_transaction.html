@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{% if transaction_type == 'incoming' %}Add Income{% else %}Add Expense{% endif %} - {{ jar.name }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'home' %}" class="text-light">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'account_view' %}" class="text-light">Accounts</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'account_detail' jar.account.id %}" class="text-light">{{ jar.account.name }}</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">
+                    {% if transaction_type == 'incoming' %}Add Income{% else %}Add Expense{% endif %}
+                </li>
+            </ol>
+        </nav>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card bg-dark border-light">
+            <div class="card-header">
+                <div class="d-flex align-items-center">
+                    {% if transaction_type == 'incoming' %}
+                        <i class="bi bi-arrow-down-circle-fill text-success fs-3 me-3"></i>
+                        <div>
+                            <h4 class="text-white mb-0">Add Income</h4>
+                            <small class="text-muted">Add money to {{ jar.name }}</small>
+                        </div>
+                    {% else %}
+                        <i class="bi bi-arrow-up-circle-fill text-danger fs-3 me-3"></i>
+                        <div>
+                            <h4 class="text-white mb-0">Add Expense</h4>
+                            <small class="text-muted">Remove money from {{ jar.name }}</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Jar Info -->
+                <div class="alert {% if transaction_type == 'incoming' %}alert-success{% else %}alert-warning{% endif %} mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-archive"></i> Jar:</strong> {{ jar.name }}<br>
+                            <strong><i class="bi bi-person"></i> Owner:</strong> {{ jar.owner.name }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong><i class="bi bi-wallet"></i> Current Balance:</strong> {{ jar.balance }}<br>
+                            <strong><i class="bi bi-bank"></i> Account:</strong> {{ jar.account.name }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.amount.id_for_label }}" class="form-label text-white">
+                                    <i class="bi bi-currency-dollar"></i> Amount *
+                                </label>
+                                {{ form.amount }}
+                                {% if form.amount.errors %}
+                                    <div class="text-danger small">{{ form.amount.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.source_destination.id_for_label }}" class="form-label text-white">
+                                    {% if transaction_type == 'incoming' %}
+                                        <i class="bi bi-arrow-right"></i> Source *
+                                    {% else %}
+                                        <i class="bi bi-arrow-left"></i> Destination *
+                                    {% endif %}
+                                </label>
+                                {{ form.source_destination }}
+                                {% if form.source_destination.errors %}
+                                    <div class="text-danger small">{{ form.source_destination.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label text-white">
+                            <i class="bi bi-journal-text"></i> Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn {% if transaction_type == 'incoming' %}btn-success{% else %}btn-danger{% endif %} flex-fill">
+                            {% if transaction_type == 'incoming' %}
+                                <i class="bi bi-plus-circle"></i> Add Income
+                            {% else %}
+                                <i class="bi bi-dash-circle"></i> Add Expense
+                            {% endif %}
+                        </button>
+                        <a href="{% url 'account_detail' jar.account.id %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card bg-dark border-light mt-4">
+            <div class="card-header">
+                <h5 class="text-white mb-0">
+                    <i class="bi bi-clock-history"></i> Recent Transactions
+                    <a href="{% url 'jar_transactions' jar.id %}" class="btn btn-outline-light btn-sm float-end">
+                        <i class="bi bi-list"></i> View All
+                    </a>
+                </h5>
+            </div>
+            <div class="card-body">
+                {% for transaction in jar.transactions.all|slice:":5" %}
+                    <div class="d-flex justify-content-between align-items-center {% if not forloop.last %}border-bottom border-secondary pb-2 mb-2{% endif %}">
+                        <div>
+                            {% if transaction.transaction_type == 'INCOMING' %}
+                                <i class="bi bi-arrow-down-circle text-success me-2"></i>
+                            {% else %}
+                                <i class="bi bi-arrow-up-circle text-danger me-2"></i>
+                            {% endif %}
+                            <strong class="text-white">{{ transaction.source_destination }}</strong>
+                            {% if transaction.description %}
+                                <br><small class="text-muted">{{ transaction.description|truncatechars:50 }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="text-end">
+                            <div class="{% if transaction.transaction_type == 'INCOMING' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                {% if transaction.transaction_type == 'INCOMING' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                            </div>
+                            <small class="text-muted">{{ transaction.created_at|date:"M d, H:i" }}</small>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-muted text-center py-3">No transactions yet</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
