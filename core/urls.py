@@ -14,4 +14,5 @@ urlpatterns = [
     path('jars/<int:jar_id>/add-income/', views.add_incoming_transaction, name='add_incoming_transaction'),
     path('jars/<int:jar_id>/add-expense/', views.add_outgoing_transaction, name='add_outgoing_transaction'),
     path('jars/<int:jar_id>/transactions/', views.jar_transactions, name='jar_transactions'),
+    path('transfer/', views.transfer_money, name='transfer_money'),
 ]

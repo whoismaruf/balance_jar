@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Transfer Money{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1><i class="bi bi-arrow-left-right"></i> Transfer Money</h1>
+        <p class="text-white">Move money between your jars across different accounts</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="{% url 'all_transactions' %}" class="btn btn-outline-light">
+                <i class="bi bi-arrow-left"></i> Back to Transactions
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Transfer Form -->
+    <div class="col-lg-8">
+        <div class="card bg-dark border-light shadow">
+            <div class="card-header border-bottom border-light">
+                <h5 class="text-white mb-0">
+                    <i class="bi bi-arrow-left-right"></i> New Transfer
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Form Errors -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger" role="alert">
+                            {% for error in form.non_field_errors %}
+                                <i class="bi bi-exclamation-triangle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Source Jar -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.source_jar.id_for_label }}" class="form-label text-white">
+                                <i class="bi bi-box-arrow-right"></i> From Jar
+                            </label>
+                            {{ form.source_jar }}
+                            <div class="form-text text-white opacity-75">{{ form.source_jar.help_text }}</div>
+                            <!-- Selected jar info -->
+                            <div id="source-jar-info" class="mt-2 p-2 bg-secondary bg-opacity-25 rounded" style="display: none;">
+                                <small class="text-white">
+                                    <div><strong>Account:</strong> <span id="source-account"></span></div>
+                                    <div><strong>Owner:</strong> <span id="source-owner"></span></div>
+                                    <div><strong>Balance:</strong> <span id="source-balance" class="text-success"></span></div>
+                                </small>
+                            </div>
+                            {% if form.source_jar.errors %}
+                                <div class="text-danger small">{{ form.source_jar.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Destination Jar -->
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.destination_jar.id_for_label }}" class="form-label text-white">
+                                <i class="bi bi-box-arrow-in-right"></i> To Jar
+                            </label>
+                            {{ form.destination_jar }}
+                            <div class="form-text text-white opacity-75">{{ form.destination_jar.help_text }}</div>
+                            <!-- Selected jar info -->
+                            <div id="destination-jar-info" class="mt-2 p-2 bg-secondary bg-opacity-25 rounded" style="display: none;">
+                                <small class="text-white">
+                                    <div><strong>Account:</strong> <span id="destination-account"></span></div>
+                                    <div><strong>Owner:</strong> <span id="destination-owner"></span></div>
+                                    <div><strong>Current Balance:</strong> <span id="destination-balance" class="text-success"></span></div>
+                                </small>
+                            </div>
+                            {% if form.destination_jar.errors %}
+                                <div class="text-danger small">{{ form.destination_jar.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Transfer Preview -->
+                    <div id="transfer-preview" class="alert alert-success" style="display: none;">
+                        <div class="row align-items-center">
+                            <div class="col-4 text-center">
+                                <div class="text-dark">
+                                    <div><strong id="preview-source-jar"></strong></div>
+                                    <div class="small">(<span id="preview-source-account"></span>)</div>
+                                    <div class="text-success">Balance: <span id="preview-source-balance"></span></div>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <i class="bi bi-arrow-right text-warning display-4"></i>
+                                <div class="text-warning fw-bold mt-2">
+                                    <span id="preview-amount">0.00</span>
+                                </div>
+                            </div>
+                            <div class="col-4 text-center">
+                                <div class="text-dark">
+                                    <div><strong id="preview-destination-jar"></strong></div>
+                                    <div class="small">(<span id="preview-destination-account"></span>)</div>
+                                    <div class="text-success">Balance: <span id="preview-destination-balance"></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="mb-3">
+                        <label for="{{ form.amount.id_for_label }}" class="form-label text-white">
+                            <i class="bi bi-currency-exchange"></i> Transfer Amount
+                        </label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}
+                            <div class="text-danger small">{{ form.amount.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label text-white">
+                            <i class="bi bi-chat-text"></i> Description <span class="text-white opacity-50">(Optional)</span>
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                            <div class="text-danger small">{{ form.description.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-between align-items-center">
+                        <a href="{% url 'all_transactions' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-arrow-left-right"></i> Transfer Money
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jar Balances Sidebar -->
+    <div class="col-lg-4">
+        <!-- Current Balances -->
+        <div class="card bg-dark border-light shadow mb-4">
+            <div class="card-header border-bottom border-light">
+                <h6 class="text-white mb-0">
+                    <i class="bi bi-wallet2"></i> Current Jar Balances
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if user_jars %}
+                    <div class="list-group list-group-flush">
+                        {% for jar in user_jars %}
+                            <div class="list-group-item bg-transparent border-0 px-0 py-2 border-bottom border-secondary">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-white mb-1">{{ jar.name }}</h6>
+                                        <small class="text-white opacity-75">
+                                            <i class="bi bi-bank"></i> {{ jar.account.name }}
+                                        </small>
+                                        <br>
+                                        <small class="text-white opacity-75">
+                                            <i class="bi bi-person"></i> {{ jar.owner.name }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success fs-6">{{ jar.balance }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3">
+                        <i class="bi bi-inbox text-white opacity-50"></i>
+                        <div class="small text-white opacity-75 mt-1">No jars available</div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Transfer Tips -->
+        <div class="card bg-info bg-opacity-10 border-info border-opacity-25">
+            <div class="card-body">
+                <h6 class="text-info mb-3">
+                    <i class="bi bi-lightbulb"></i> Transfer Tips
+                </h6>
+                <ul class="list-unstyled text-white opacity-75 small mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-check2 text-success"></i>
+                        Transfer between any jars, even across different accounts
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check2 text-success"></i>
+                        Balance will be updated automatically in both jars
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check2 text-success"></i>
+                        Transaction history will show the transfer details
+                    </li>
+                    <li>
+                        <i class="bi bi-exclamation-triangle text-warning"></i>
+                        Ensure sufficient balance in the source jar
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styling for jar selection dropdowns */
+#id_source_jar option, #id_destination_jar option {
+    padding: 8px 12px;
+}
+
+/* Dynamic balance display */
+.jar-balance-display {
+    font-size: 0.9em;
+    margin-top: 4px;
+}
+</style>
+
+<script>
+// Add real-time jar information display and transfer preview
+document.addEventListener('DOMContentLoaded', function() {
+    const sourceJarSelect = document.getElementById('id_source_jar');
+    const destinationJarSelect = document.getElementById('id_destination_jar');
+    const amountInput = document.getElementById('id_amount');
+    
+    // Jar data from Django template
+    const jarData = {
+        {% for jar in user_jars %}
+        {{ jar.id }}: {
+            name: "{{ jar.name }}",
+            account: "{{ jar.account.name }}",
+            owner: "{{ jar.owner.name }}",
+            balance: {{ jar.balance }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    };
+
+    function updateJarInfo(selectElement, infoElementId, accountSpanId, ownerSpanId, balanceSpanId) {
+        const selectedValue = selectElement.value;
+        const infoElement = document.getElementById(infoElementId);
+        
+        if (selectedValue && jarData[selectedValue]) {
+            const jar = jarData[selectedValue];
+            document.getElementById(accountSpanId).textContent = jar.account;
+            document.getElementById(ownerSpanId).textContent = jar.owner;
+            document.getElementById(balanceSpanId).textContent = jar.balance;
+            infoElement.style.display = 'block';
+        } else {
+            infoElement.style.display = 'none';
+        }
+        updateTransferPreview();
+    }
+
+    function updateTransferPreview() {
+        const sourceValue = sourceJarSelect.value;
+        const destValue = destinationJarSelect.value;
+        const amount = amountInput.value;
+        const previewElement = document.getElementById('transfer-preview');
+
+        if (sourceValue && destValue && amount && jarData[sourceValue] && jarData[destValue]) {
+            const sourceJar = jarData[sourceValue];
+            const destJar = jarData[destValue];
+            
+            // Update preview information
+            document.getElementById('preview-source-jar').textContent = sourceJar.name;
+            document.getElementById('preview-source-account').textContent = sourceJar.account;
+            document.getElementById('preview-source-balance').textContent = sourceJar.balance;
+            
+            document.getElementById('preview-destination-jar').textContent = destJar.name;
+            document.getElementById('preview-destination-account').textContent = destJar.account;
+            document.getElementById('preview-destination-balance').textContent = destJar.balance;
+            
+            document.getElementById('preview-amount').textContent = amount;
+            
+            previewElement.style.display = 'block';
+        } else {
+            previewElement.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    if (sourceJarSelect) {
+        sourceJarSelect.addEventListener('change', function() {
+            updateJarInfo(this, 'source-jar-info', 'source-account', 'source-owner', 'source-balance');
+        });
+    }
+
+    if (destinationJarSelect) {
+        destinationJarSelect.addEventListener('change', function() {
+            updateJarInfo(this, 'destination-jar-info', 'destination-account', 'destination-owner', 'destination-balance');
+        });
+    }
+
+    if (amountInput) {
+        amountInput.addEventListener('input', updateTransferPreview);
+    }
+});
+</script>
+{% endblock %}

@@ -88,26 +88,49 @@
                                             <div class="rounded-circle bg-success bg-opacity-25 p-2">
                                                 <i class="bi bi-arrow-down-circle text-success"></i>
                                             </div>
-                                        {% else %}
+                                        {% elif transaction.transaction_type == 'OUTGOING' %}
                                             <div class="rounded-circle bg-danger bg-opacity-25 p-2">
                                                 <i class="bi bi-arrow-up-circle text-danger"></i>
+                                            </div>
+                                        {% elif transaction.transaction_type == 'TRANSFER' %}
+                                            <div class="rounded-circle bg-warning bg-opacity-25 p-2">
+                                                <i class="bi bi-arrow-left-right text-warning"></i>
                                             </div>
                                         {% endif %}
                                     </div>
                                     <div class="col">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <h6 class="text-white mb-1">{{ transaction.source_destination }}</h6>
-                                                <div class="small text-white">
-                                                    <i class="bi bi-archive"></i> {{ transaction.jar.name }} • 
-                                                    <i class="bi bi-bank"></i> {{ transaction.jar.account.name }} •
-                                                    <i class="bi bi-person"></i> {{ transaction.jar.owner.name }}
-                                                </div>
+                                                {% if transaction.transaction_type == 'TRANSFER' %}
+                                                    <h6 class="text-white mb-1">
+                                                        <i class="bi bi-arrow-right"></i> {{ transaction.destination_jar.name }}
+                                                    </h6>
+                                                    <div class="small text-white">
+                                                        <i class="bi bi-archive"></i> From: {{ transaction.jar.name }} • 
+                                                        <i class="bi bi-bank"></i> To: {{ transaction.destination_jar.account.name }}
+                                                    </div>
+                                                {% else %}
+                                                    <h6 class="text-white mb-1">{{ transaction.source_destination }}</h6>
+                                                    <div class="small text-white">
+                                                        <i class="bi bi-archive"></i> {{ transaction.jar.name }} • 
+                                                        <i class="bi bi-bank"></i> {{ transaction.jar.account.name }} •
+                                                        <i class="bi bi-person"></i> {{ transaction.jar.owner.name }}
+                                                    </div>
+                                                {% endif %}
+                                                {% if transaction.description %}
+                                                    <div class="small text-white mt-1">{{ transaction.description|truncatechars:60 }}</div>
+                                                {% endif %}
                                             </div>
                                             <div class="text-end">
-                                                <div class="{% if transaction.transaction_type == 'INCOMING' %}text-success{% else %}text-danger{% endif %} fw-bold">
-                                                    {% if transaction.transaction_type == 'INCOMING' %}+{% else %}-{% endif %}{{ transaction.amount }}
-                                                </div>
+                                                {% if transaction.transaction_type == 'TRANSFER' %}
+                                                    <div class="text-warning fw-bold">
+                                                        {{ transaction.amount }}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="{% if transaction.transaction_type == 'INCOMING' %}text-success{% else %}text-danger{% endif %} fw-bold">
+                                                        {% if transaction.transaction_type == 'INCOMING' %}+{% else %}-{% endif %}{{ transaction.amount }}
+                                                    </div>
+                                                {% endif %}
                                                 <div class="small text-white">{{ transaction.created_at|date:"M d, H:i" }}</div>
                                             </div>
                                         </div>
@@ -164,6 +187,9 @@
                 <div class="d-grid gap-2">
                     <a href="{% url 'account_view' %}" class="btn btn-primary">
                         <i class="bi bi-bank"></i> Manage Accounts
+                    </a>
+                    <a href="{% url 'transfer_money' %}" class="btn btn-warning">
+                        <i class="bi bi-arrow-left-right"></i> Transfer Money
                     </a>
                     <a href="{% url 'owner_view' %}" class="btn btn-outline-light">
                         <i class="bi bi-people"></i> Manage Owners

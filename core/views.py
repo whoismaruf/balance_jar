@@ -251,3 +251,29 @@ def all_transactions(request):
     }
     
     return render(request, 'core/all_transactions.html', context)
+
+
+@login_required
+def transfer_money(request):
+    if request.method == 'POST':
+        form = TransferForm(request.POST, user=request.user)
+        if form.is_valid():
+            transfer = form.save(commit=False)
+            transfer.created_by = request.user
+            try:
+                transfer.save()
+                return redirect('all_transactions')
+            except ValueError as e:
+                form.add_error(None, str(e))
+    else:
+        form = TransferForm(user=request.user)
+    
+    # Get user's jars for balance display
+    user_jars = Jar.objects.filter(account__created_by=request.user).select_related('account', 'owner')
+    
+    context = {
+        'form': form,
+        'user_jars': user_jars,
+    }
+    
+    return render(request, 'core/transfer_money.html', context)

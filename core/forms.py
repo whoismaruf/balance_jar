@@ -94,3 +94,84 @@ class OutgoingTransactionForm(forms.ModelForm):
         if commit:
             transaction.save()
         return transaction
+
+
+class TransferForm(forms.ModelForm):
+    source_jar = forms.ModelChoiceField(
+        queryset=Jar.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Select the jar to transfer money FROM",
+        empty_label="-- Select source jar --"
+    )
+    destination_jar = forms.ModelChoiceField(
+        queryset=Jar.objects.all(),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        help_text="Select the jar to transfer money TO",
+        empty_label="-- Select destination jar --"
+    )
+
+    class Meta:
+        model = Transaction
+        fields = ['source_jar', 'destination_jar', 'amount', 'description']
+        widgets = {
+            'description': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Optional: Add notes about this transfer...'
+            }),
+            'amount': forms.NumberInput(attrs={
+                'step': '0.01',
+                'min': '0.01',
+                'class': 'form-control',
+                'placeholder': '0.00'
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+        
+        # Filter jars by user and customize display
+        if self.user:
+            user_jars = Jar.objects.filter(account__created_by=self.user).select_related('account', 'owner')
+            self.fields['source_jar'].queryset = user_jars
+            self.fields['destination_jar'].queryset = user_jars
+            
+            # Customize the choice labels to show account and balance info
+            jar_choices = []
+            for jar in user_jars:
+                label = f"{jar.name} - {jar.account.name} (Balance: {jar.balance}) - {jar.owner.name}"
+                jar_choices.append((jar.id, label))
+            
+            self.fields['source_jar'].choices = [('', '---------')] + jar_choices
+            self.fields['destination_jar'].choices = [('', '---------')] + jar_choices
+
+    def clean(self):
+        cleaned_data = super().clean()
+        source_jar = cleaned_data.get('source_jar')
+        destination_jar = cleaned_data.get('destination_jar')
+        amount = cleaned_data.get('amount')
+
+        if source_jar and destination_jar:
+            # Check if trying to transfer to the same jar
+            if source_jar == destination_jar:
+                raise forms.ValidationError("Cannot transfer money to the same jar.")
+            
+            # Check if source jar has sufficient balance
+            if amount and amount > source_jar.balance:
+                raise forms.ValidationError(
+                    f"Insufficient balance in {source_jar.name}. "
+                    f"Available: {source_jar.balance}, Requested: {amount}"
+                )
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        transaction = super().save(commit=False)
+        transaction.transaction_type = 'TRANSFER'
+        transaction.jar = self.cleaned_data['source_jar']
+        transaction.destination_jar = self.cleaned_data['destination_jar']
+        
+        if commit:
+            transaction.save()
+        return transaction

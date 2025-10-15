@@ -70,6 +70,7 @@ class Transaction(BaseModel):
     TRANSACTION_TYPE_CHOICES = [
         ('INCOMING', 'Incoming'),
         ('OUTGOING', 'Outgoing'),
+        ('TRANSFER', 'Transfer'),
     ]
     
     jar = models.ForeignKey(Jar, on_delete=models.CASCADE, related_name='transactions')
@@ -78,11 +79,23 @@ class Transaction(BaseModel):
     source_destination = models.CharField(max_length=200, help_text="Where the money comes from or goes to")
     description = models.TextField(blank=True, null=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    # Transfer-specific fields
+    destination_jar = models.ForeignKey(
+        Jar, 
+        on_delete=models.CASCADE, 
+        related_name='incoming_transfers',
+        null=True, 
+        blank=True,
+        help_text="Destination jar for transfers"
+    )
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
+        if self.transaction_type == 'TRANSFER':
+            return f"Transfer - {self.amount} ({self.jar.name} → {self.destination_jar.name})"
         return f"{self.get_transaction_type_display()} - {self.amount} ({self.jar.name})"
 
     def save(self, *args, **kwargs):
@@ -96,5 +109,20 @@ class Transaction(BaseModel):
             elif self.transaction_type == 'OUTGOING':
                 if not self.jar.remove_money(self.amount):
                     raise ValueError("Insufficient balance in jar")
+            elif self.transaction_type == 'TRANSFER':
+                if not self.destination_jar:
+                    raise ValueError("Destination jar is required for transfers")
+                if self.jar == self.destination_jar:
+                    raise ValueError("Cannot transfer to the same jar")
+                
+                # Remove money from source jar
+                if not self.jar.remove_money(self.amount):
+                    raise ValueError("Insufficient balance in source jar")
+                
+                # Add money to destination jar
+                self.destination_jar.add_money(self.amount)
+                
+                # Update source_destination for display
+                self.source_destination = f"{self.destination_jar.name} ({self.destination_jar.account.name})"
         
         super().save(*args, **kwargs)
