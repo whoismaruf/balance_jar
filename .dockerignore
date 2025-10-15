@@ -1,0 +1,81 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Environment
+.env
+.env.local
+.env.production
+.env.development
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.pytest_cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.cache
+
+# Virtual environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific
+db.sqlite3
+*.sqlite3
+media/
+staticfiles/
+static/
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Documentation
+README.md
+docs/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+test-results/
+
+# Development tools
+.mypy_cache/
+.dmypy.json
+dmypy.json
