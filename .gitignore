@@ -25,10 +25,6 @@ static/
 .env.production
 .env.development
 
-# Docker
-docker-compose.override.yml
-*.tmp
-
 # Virtualenv
 venv/
 ENV/
