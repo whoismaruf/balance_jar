@@ -57,7 +57,3 @@ nosetests.xml
 coverage.xml
 *.cover
 *.py,cover
-
-# Migrations
-**/migrations/*.pyc
-**/migrations/__pycache__/
