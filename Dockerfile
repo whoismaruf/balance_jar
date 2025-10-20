@@ -13,12 +13,16 @@ COPY requirements.txt /app/
 RUN pip install --upgrade pip && \
     pip install -r requirements.txt
 
-# Add a non-root user for security purposes (optional but recommended)
-RUN adduser --disabled-password --gecos '' appuser
-USER appuser
-
 # Copy the rest of the application code into the container
 COPY . /app/
+
+# Create directories for static and media files
+RUN mkdir -p /app/staticfiles /app/media
+
+# Add a non-root user for security purposes (optional but recommended)
+RUN adduser --disabled-password --gecos '' appuser && \
+    chown -R appuser:appuser /app
+USER appuser
 
 # Expose port 8080
 EXPOSE 8080

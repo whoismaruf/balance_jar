@@ -18,12 +18,16 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      collectstatic:
+        condition: service_completed_successfully
     env_file:
       - .env
     restart: always
+    volumes:
+      - static_volume:/app/staticfiles
 
   migrate:
-    container_name: wapi-migrate
+    container_name: migrate
     build:
       context: .
       dockerfile: Dockerfile
@@ -31,3 +35,18 @@ services:
     env_file:
       - .env
     restart: "no"
+
+  collectstatic:
+    container_name: collectstatic
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "python manage.py collectstatic --noinput --clear"]
+    env_file:
+      - .env
+    restart: "no"
+    volumes:
+      - static_volume:/app/staticfiles
+
+volumes:
+  static_volume:
