@@ -6,3 +6,4 @@ from core.models import *
 admin.site.register(Owner)
 admin.site.register(Account)
 admin.site.register(Jar)
+admin.site.register(Transaction)
