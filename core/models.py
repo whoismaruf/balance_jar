@@ -6,11 +6,25 @@ from django.db.models import Sum
 # Create your models here.
 
 class BaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(blank=True, null=True, help_text="Date and time when this record was created")
+    updated_at = models.DateTimeField(blank=True, null=True, help_text="Date and time when this record was last updated")
 
     class Meta:
         abstract = True
+    
+    def save(self, *args, **kwargs):
+        from django.utils import timezone
+        now = timezone.now()
+        
+        # Set created_at if this is a new record and no value is provided
+        if not self.pk and not self.created_at:
+            self.created_at = now
+        
+        # Always update updated_at unless explicitly disabled
+        if not kwargs.pop('skip_updated_at', False):
+            self.updated_at = now
+            
+        super().save(*args, **kwargs)
 
 
 class Owner(BaseModel):

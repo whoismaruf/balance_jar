@@ -33,9 +33,19 @@ class JarFormNoAccount(forms.ModelForm):
 
 
 class TransactionForm(forms.ModelForm):
+    created_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        help_text="Select the date and time for this transaction",
+        required=True,
+        label="Transaction Date"
+    )
+    
     class Meta:
         model = Transaction
-        fields = ['transaction_type', 'amount', 'source_destination', 'description']
+        fields = ['transaction_type', 'amount', 'source_destination', 'description', 'created_at']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
@@ -48,17 +58,39 @@ class TransactionForm(forms.ModelForm):
         self.fields['amount'].widget.attrs.update({'class': 'form-control'})
         self.fields['source_destination'].widget.attrs.update({'class': 'form-control'})
         self.fields['description'].widget.attrs.update({'class': 'form-control'})
+        
+        # Set default to current date/time if not provided
+        if not self.instance.pk and not self.initial.get('created_at'):
+            from django.utils import timezone
+            self.fields['created_at'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
 
 
 class IncomingTransactionForm(forms.ModelForm):
+    created_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        help_text="Select the date and time for this transaction",
+        required=True,
+        label="Transaction Date"
+    )
+    
     class Meta:
         model = Transaction
-        fields = ['amount', 'source_destination', 'description']
+        fields = ['amount', 'source_destination', 'description', 'created_at']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
             'source_destination': forms.TextInput(attrs={'placeholder': 'e.g., Salary, Bonus, Gift, etc.'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set default to current date/time if not provided
+        if not self.instance.pk and not self.initial.get('created_at'):
+            from django.utils import timezone
+            self.fields['created_at'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
 
     def save(self, commit=True):
         transaction = super().save(commit=False)
@@ -69,9 +101,19 @@ class IncomingTransactionForm(forms.ModelForm):
 
 
 class OutgoingTransactionForm(forms.ModelForm):
+    created_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        help_text="Select the date and time for this transaction",
+        required=True,
+        label="Transaction Date"
+    )
+    
     class Meta:
         model = Transaction
-        fields = ['amount', 'source_destination', 'description']
+        fields = ['amount', 'source_destination', 'description', 'created_at']
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'amount': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
@@ -81,6 +123,11 @@ class OutgoingTransactionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.jar = kwargs.pop('jar', None)
         super().__init__(*args, **kwargs)
+        
+        # Set default to current date/time if not provided
+        if not self.instance.pk and not self.initial.get('created_at'):
+            from django.utils import timezone
+            self.fields['created_at'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
 
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
@@ -110,9 +157,19 @@ class TransferForm(forms.ModelForm):
         empty_label="-- Select destination jar --"
     )
 
+    created_at = forms.DateTimeField(
+        widget=forms.DateTimeInput(attrs={
+            'type': 'datetime-local',
+            'class': 'form-control'
+        }),
+        help_text="Select the date and time for this transfer",
+        required=True,
+        label="Transfer Date"
+    )
+
     class Meta:
         model = Transaction
-        fields = ['source_jar', 'destination_jar', 'amount', 'description']
+        fields = ['source_jar', 'destination_jar', 'amount', 'description', 'created_at']
         widgets = {
             'description': forms.Textarea(attrs={
                 'rows': 3,
@@ -130,6 +187,11 @@ class TransferForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
+        
+        # Set default to current date/time if not provided
+        if not self.instance.pk and not self.initial.get('created_at'):
+            from django.utils import timezone
+            self.fields['created_at'].initial = timezone.now().strftime('%Y-%m-%dT%H:%M')
         
         # Filter jars by user and customize display
         if self.user:
